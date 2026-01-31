@@ -3,50 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة إنجاز المعلمين</title>
+    <title>منصة إنجاز المعلمين السحابية</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
     <nav>
         <button id="navView" class="active" onclick="showPage('view')">👁️ عرض ملفات الإنجاز</button>
-        <button id="navAdmin" onclick="showPage('admin')">⚙️ لوحة الإدارة (إدخال بيانات)</button>
+        <button id="navAdmin" onclick="showPage('admin')">⚙️ لوحة الإدارة</button>
     </nav>
 
     <div class="container">
         <div id="viewPage">
             <div class="search-section">
                 <h2>بوابة الإنجاز الرقمي</h2>
-                <p>اختر اسم المعلم للاطلاع على التقرير</p>
+                <p>اختر اسم المعلم للاطلاع على التقرير (يتم التحديث لحظياً)</p>
                 <select id="teacherSelect" onchange="displayPortfolio()">
-                    <option value="">-- اختر المعلم من القائمة --</option>
+                    <option value="">-- جاري تحميل قائمة المعلمين... --</option>
                 </select>
             </div>
-
-            <div id="portfolioCard" class="portfolio-card">
+            <div id="portfolioCard" class="portfolio-card" style="display:none">
                 <div class="card-header">
                     <div class="avatar-circle">👨‍🏫</div>
-                    <div>
-                        <h1 id="outName"></h1>
-                        <p id="outSubject"></p>
-                    </div>
+                    <div><h1 id="outName"></h1><p id="outSubject"></p></div>
                 </div>
                 <div class="grid-content">
-                    <div class="info-box bg-green">
-                        <h3>📋 نوع الإنجاز</h3>
-                        <p id="outAch"></p>
-                    </div>
-                    <div class="info-box bg-blue">
-                        <h3>🛠️ الأدوات المستخدمة</h3>
-                        <ul id="outTools"></ul>
-                    </div>
-                    <div class="info-box bg-orange">
-                        <h3>🚀 إجراءات التنفيذ</h3>
-                        <ul id="outActions"></ul>
-                    </div>
-                    <div class="info-box bg-gold">
-                        <h3>✨ الأثر التربوي</h3>
-                        <ul id="outImpact"></ul>
-                    </div>
+                    <div class="info-box bg-green"><h3>📋 نوع الإنجاز</h3><p id="outAch"></p></div>
+                    <div class="info-box bg-blue"><h3>🛠️ الأدوات</h3><ul id="outTools"></ul></div>
+                    <div class="info-box bg-orange"><h3>🚀 الإجراءات</h3><ul id="outActions"></ul></div>
+                    <div class="info-box bg-gold"><h3>✨ الأثر</h3><ul id="outImpact"></ul></div>
                 </div>
                 <div id="outBadge" class="card-footer"></div>
             </div>
@@ -54,47 +40,20 @@
 
         <div id="adminPage" style="display:none">
             <div class="admin-section">
-                <h2>استمارة إدخال بيانات إنجاز المعلم</h2>
+                <h2>استمارة إدخال بيانات سحابية</h2>
                 <div class="form-grid">
-                    <div class="full-width">
-                        <label>اسم المعلم الثلاثي</label>
-                        <input type="text" id="inName" placeholder="مثال: محمد أحمد علي">
-                    </div>
-                    <div class="full-width">
-                        <label>التخصص</label>
-                        <input type="text" id="inSubject" placeholder="مثال: لغة عربية">
-                    </div>
-                    <div class="full-width">
-                        <label>نوع الإنجاز</label>
-                        <textarea id="inAch" placeholder="اكتب وصف الإنجاز هنا..."></textarea>
-                    </div>
-                    <div>
-                        <label>الأدوات (فاصلة بين كل أداة)</label>
-                        <input type="text" id="inTools" placeholder="أداة 1, أداة 2">
-                    </div>
-                    <div>
-                        <label>الإجراءات (فاصلة بين كل إجراء)</label>
-                        <input type="text" id="inActions" placeholder="إجراء 1, إجراء 2">
-                    </div>
-                    <div>
-                        <label>الأثر التربوي (فاصلة بين كل أثر)</label>
-                        <input type="text" id="inImpact" placeholder="أثر 1, أثر 2">
-                    </div>
-                    <div>
-                        <label>ميثاق التميز</label>
-                        <input type="text" id="inBadge" placeholder="رقم المؤشر أو الميثاق">
-                    </div>
+                    <div class="full-width"><label>اسم المعلم</label><input type="text" id="inName"></div>
+                    <div class="full-width"><label>التخصص</label><input type="text" id="inSubject"></div>
+                    <div class="full-width"><label>نوع الإنجاز</label><textarea id="inAch"></textarea></div>
+                    <div><label>الأدوات (فاصلة بينها)</label><input type="text" id="inTools"></div>
+                    <div><label>الإجراءات (فاصلة بينها)</label><input type="text" id="inActions"></div>
+                    <div><label>الأثر التربوي (فاصلة بينها)</label><input type="text" id="inImpact"></div>
+                    <div><label>ميثاق التميز</label><input type="text" id="inBadge"></div>
                 </div>
-                <input type="hidden" id="editIdx" value="">
-                <button class="btn-main" onclick="saveData()">حفظ البيانات في النظام</button>
-
+                <input type="hidden" id="editKey" value="">
+                <button class="btn-main" onclick="saveData()">حفظ ونشر للجميع</button>
                 <table class="teacher-table">
-                    <thead>
-                        <tr>
-                            <th>اسم المعلم</th>
-                            <th>العمليات</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>المعلم</th><th>العمليات</th></tr></thead>
                     <tbody id="tableBody"></tbody>
                 </table>
             </div>
