@@ -8,28 +8,45 @@
 </head>
 <body>
     <nav>
-        <button id="navView" class="active" onclick="showPage('view')">👁️ عرض الملفات</button>
-        <button id="navAdmin" onclick="showPage('admin')">⚙️ لوحة الإدارة</button>
+        <button id="navView" class="active" onclick="showPage('view')">👁️ عرض ملفات الإنجاز</button>
+        <button id="navAdmin" onclick="showPage('admin')">⚙️ لوحة الإدارة (إدخال بيانات)</button>
     </nav>
 
     <div class="container">
         <div id="viewPage">
             <div class="search-section">
-                <h2>بوابة المعلم المتميز</h2>
+                <h2>بوابة الإنجاز الرقمي</h2>
+                <p>اختر اسم المعلم للاطلاع على التقرير</p>
                 <select id="teacherSelect" onchange="displayPortfolio()">
-                    <option value="">-- اختر المعلم --</option>
+                    <option value="">-- اختر المعلم من القائمة --</option>
                 </select>
             </div>
+
             <div id="portfolioCard" class="portfolio-card">
                 <div class="card-header">
                     <div class="avatar-circle">👨‍🏫</div>
-                    <div><h1 id="outName"></h1><p id="outSubject"></p></div>
+                    <div>
+                        <h1 id="outName"></h1>
+                        <p id="outSubject"></p>
+                    </div>
                 </div>
                 <div class="grid-content">
-                    <div class="info-box bg-green"><h3>📋 نوع الإنجاز</h3><p id="outAch"></p></div>
-                    <div class="info-box bg-blue"><h3>🛠️ الأدوات</h3><ul id="outTools"></ul></div>
-                    <div class="info-box bg-orange"><h3>🚀 الإجراءات</h3><ul id="outActions"></ul></div>
-                    <div class="info-box bg-gold"><h3>✨ الأثر</h3><ul id="outImpact"></ul></div>
+                    <div class="info-box bg-green">
+                        <h3>📋 نوع الإنجاز</h3>
+                        <p id="outAch"></p>
+                    </div>
+                    <div class="info-box bg-blue">
+                        <h3>🛠️ الأدوات المستخدمة</h3>
+                        <ul id="outTools"></ul>
+                    </div>
+                    <div class="info-box bg-orange">
+                        <h3>🚀 إجراءات التنفيذ</h3>
+                        <ul id="outActions"></ul>
+                    </div>
+                    <div class="info-box bg-gold">
+                        <h3>✨ الأثر التربوي</h3>
+                        <ul id="outImpact"></ul>
+                    </div>
                 </div>
                 <div id="outBadge" class="card-footer"></div>
             </div>
@@ -37,20 +54,47 @@
 
         <div id="adminPage" style="display:none">
             <div class="admin-section">
-                <h2>إدارة البيانات</h2>
+                <h2>استمارة إدخال بيانات إنجاز المعلم</h2>
                 <div class="form-grid">
-                    <input type="text" id="inName" placeholder="اسم المعلم">
-                    <input type="text" id="inSubject" placeholder="التخصص">
-                    <textarea id="inAch" placeholder="نوع الإنجاز" style="grid-column: span 2;"></textarea>
-                    <input type="text" id="inTools" placeholder="الأدوات (فاصلة بينها)">
-                    <input type="text" id="inActions" placeholder="الإجراءات (فاصلة بينها)">
-                    <input type="text" id="inImpact" placeholder="الأثر (فاصلة بينها)">
-                    <input type="text" id="inBadge" placeholder="ميثاق التميز">
+                    <div class="full-width">
+                        <label>اسم المعلم الثلاثي</label>
+                        <input type="text" id="inName" placeholder="مثال: محمد أحمد علي">
+                    </div>
+                    <div class="full-width">
+                        <label>التخصص</label>
+                        <input type="text" id="inSubject" placeholder="مثال: لغة عربية">
+                    </div>
+                    <div class="full-width">
+                        <label>نوع الإنجاز</label>
+                        <textarea id="inAch" placeholder="اكتب وصف الإنجاز هنا..."></textarea>
+                    </div>
+                    <div>
+                        <label>الأدوات (فاصلة بين كل أداة)</label>
+                        <input type="text" id="inTools" placeholder="أداة 1, أداة 2">
+                    </div>
+                    <div>
+                        <label>الإجراءات (فاصلة بين كل إجراء)</label>
+                        <input type="text" id="inActions" placeholder="إجراء 1, إجراء 2">
+                    </div>
+                    <div>
+                        <label>الأثر التربوي (فاصلة بين كل أثر)</label>
+                        <input type="text" id="inImpact" placeholder="أثر 1, أثر 2">
+                    </div>
+                    <div>
+                        <label>ميثاق التميز</label>
+                        <input type="text" id="inBadge" placeholder="رقم المؤشر أو الميثاق">
+                    </div>
                 </div>
-                <input type="hidden" id="editIdx">
-                <button class="btn-main" onclick="saveData()">حفظ البيانات</button>
+                <input type="hidden" id="editIdx" value="">
+                <button class="btn-main" onclick="saveData()">حفظ البيانات في النظام</button>
+
                 <table class="teacher-table">
-                    <thead><tr><th>المعلم</th><th>العمليات</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>اسم المعلم</th>
+                            <th>العمليات</th>
+                        </tr>
+                    </thead>
                     <tbody id="tableBody"></tbody>
                 </table>
             </div>
