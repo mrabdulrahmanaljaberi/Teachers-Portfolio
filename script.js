@@ -1,4 +1,3 @@
-// إعدادات Firebase الخاصة بك
 const firebaseConfig = {
   apiKey: "AIzaSyDoDs_wxYRk9gK1Iw-62p5zY8pKfvg9zTw",
   authDomain: "teacherportfolioproject-1382f.firebaseapp.com",
@@ -9,12 +8,10 @@ const firebaseConfig = {
   appId: "1:732846804242:web:33453e7243ea1132ddb7cb"
 };
 
-// تهيئة Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 let teachersData = {};
 
-// دالة التبديل بين الصفحات
 function showPage(p) {
     if(p === 'admin') {
         let pass = prompt("كلمة مرور الإدارة:");
@@ -24,7 +21,6 @@ function showPage(p) {
     document.getElementById('adminPage').style.display = p === 'admin' ? 'block' : 'none';
 }
 
-// حفظ البيانات في السحابة
 function saveData() {
     const key = document.getElementById('editKey').value;
     const data = {
@@ -34,7 +30,8 @@ function saveData() {
         tools: document.getElementById('inTools').value,
         actions: document.getElementById('inActions').value,
         impact: document.getElementById('inImpact').value,
-        badge: document.getElementById('inBadge').value
+        badge: document.getElementById('inBadge').value,
+        pdfUrl: document.getElementById('inPdf').value // حفظ الرابط
     };
 
     if(!data.name) return alert("الاسم مطلوب");
@@ -44,12 +41,10 @@ function saveData() {
     } else {
         db.ref('teachers').push(data);
     }
-    
-    alert("تم الحفظ والمزامنة بنجاح!");
+    alert("تم الحفظ بنجاح!");
     clearForm();
 }
 
-// استماع لحظي لتحديثات البيانات من السحابة
 db.ref('teachers').on('value', (snapshot) => {
     teachersData = snapshot.val() || {};
     refreshUI();
@@ -58,10 +53,8 @@ db.ref('teachers').on('value', (snapshot) => {
 function refreshUI() {
     const sel = document.getElementById('teacherSelect');
     const tbody = document.getElementById('tableBody');
-    
     sel.innerHTML = '<option value="">-- اختر المعلم --</option>';
     tbody.innerHTML = '';
-
     for(let key in teachersData) {
         const t = teachersData[key];
         sel.innerHTML += `<option value="${key}">${t.name}</option>`;
@@ -75,6 +68,8 @@ function refreshUI() {
 function displayPortfolio() {
     const key = document.getElementById('teacherSelect').value;
     const card = document.getElementById('portfolioCard');
+    const pdfSec = document.getElementById('pdfSection');
+    
     if(!key) { card.style.display = 'none'; return; }
 
     const t = teachersData[key];
@@ -82,6 +77,14 @@ function displayPortfolio() {
     document.getElementById('outSubject').innerText = t.subject;
     document.getElementById('outAch').innerText = t.ach;
     document.getElementById('outBadge').innerText = "ميثاق التميز: " + t.badge;
+
+    // عرض زر الـ PDF إذا كان الرابط موجوداً
+    if(t.pdfUrl && t.pdfUrl.trim() !== "") {
+        document.getElementById('outPdf').href = t.pdfUrl;
+        pdfSec.style.display = 'block';
+    } else {
+        pdfSec.style.display = 'none';
+    }
 
     fillList('outTools', t.tools);
     fillList('outActions', t.actions);
@@ -94,10 +97,6 @@ function fillList(id, str) {
     el.innerHTML = str.split(',').map(i => i.trim() ? `<li>${i.trim()}</li>` : '').join('');
 }
 
-function deleteTeacher(key) {
-    if(confirm("حذف نهائي من السحابة؟")) db.ref('teachers/' + key).remove();
-}
-
 function editTeacher(key) {
     const t = teachersData[key];
     document.getElementById('inName').value = t.name;
@@ -107,7 +106,12 @@ function editTeacher(key) {
     document.getElementById('inActions').value = t.actions;
     document.getElementById('inImpact').value = t.impact;
     document.getElementById('inBadge').value = t.badge;
+    document.getElementById('inPdf').value = t.pdfUrl || ""; // تعبئة حقل الرابط عند التعديل
     document.getElementById('editKey').value = key;
+}
+
+function deleteTeacher(key) {
+    if(confirm("حذف نهائي؟")) db.ref('teachers/' + key).remove();
 }
 
 function clearForm() {
