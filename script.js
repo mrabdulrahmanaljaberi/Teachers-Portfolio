@@ -1,63 +1,83 @@
-let teachers = JSON.parse(localStorage.getItem('eduData')) || [];
+// إعدادات Firebase الخاصة بك
+const firebaseConfig = {
+  apiKey: "AIzaSyDoDs_wxYRk9gK1Iw-62p5zY8pKfvg9zTw",
+  authDomain: "teacherportfolioproject-1382f.firebaseapp.com",
+  databaseURL: "https://teacherportfolioproject-1382f-default-rtdb.firebaseio.com/",
+  projectId: "teacherportfolioproject-1382f",
+  storageBucket: "teacherportfolioproject-1382f.firebasestorage.app",
+  messagingSenderId: "732846804242",
+  appId: "1:732846804242:web:33453e7243ea1132ddb7cb"
+};
 
+// تهيئة Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+let teachersData = {};
+
+// دالة التبديل بين الصفحات
 function showPage(p) {
     if(p === 'admin') {
-        let pass = prompt("الرجاء إدخال كلمة المرور للوصول للاستمارة:");
-        if(pass !== "1234") { alert("كلمة المرور غير صحيحة!"); return; }
+        let pass = prompt("كلمة مرور الإدارة:");
+        if(pass !== "1234") return;
     }
     document.getElementById('viewPage').style.display = p === 'view' ? 'block' : 'none';
     document.getElementById('adminPage').style.display = p === 'admin' ? 'block' : 'none';
-    document.getElementById('navView').classList.toggle('active', p === 'view');
-    document.getElementById('navAdmin').classList.toggle('active', p === 'admin');
-    refreshUI();
 }
 
+// حفظ البيانات في السحابة
 function saveData() {
-    const teacher = {
+    const key = document.getElementById('editKey').value;
+    const data = {
         name: document.getElementById('inName').value,
         subject: document.getElementById('inSubject').value,
         ach: document.getElementById('inAch').value,
-        tools: document.getElementById('inTools').value.split(','),
-        actions: document.getElementById('inActions').value.split(','),
-        impact: document.getElementById('inImpact').value.split(','),
+        tools: document.getElementById('inTools').value,
+        actions: document.getElementById('inActions').value,
+        impact: document.getElementById('inImpact').value,
         badge: document.getElementById('inBadge').value
     };
 
-    if(!teacher.name) { alert("يرجى إدخال اسم المعلم على الأقل"); return; }
+    if(!data.name) return alert("الاسم مطلوب");
 
-    const idx = document.getElementById('editIdx').value;
-    if(idx === "") teachers.push(teacher);
-    else teachers[idx] = teacher;
-
-    localStorage.setItem('eduData', JSON.stringify(teachers));
-    alert("تم حفظ البيانات بنجاح!");
+    if(key) {
+        db.ref('teachers/' + key).set(data);
+    } else {
+        db.ref('teachers').push(data);
+    }
+    
+    alert("تم الحفظ والمزامنة بنجاح!");
     clearForm();
-    refreshUI();
 }
+
+// استماع لحظي لتحديثات البيانات من السحابة
+db.ref('teachers').on('value', (snapshot) => {
+    teachersData = snapshot.val() || {};
+    refreshUI();
+});
 
 function refreshUI() {
     const sel = document.getElementById('teacherSelect');
-    sel.innerHTML = '<option value="">-- اختر المعلم من القائمة --</option>' + 
-        teachers.map((t, i) => `<option value="${i}">${t.name}</option>`).join('');
-
     const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = teachers.map((t, i) => `
-        <tr>
-            <td>${t.name}</td>
-            <td>
-                <button onclick="editTeacher(${i})" style="color:blue">تعديل</button> | 
-                <button onclick="deleteTeacher(${i})" style="color:red">حذف</button>
-            </td>
-        </tr>
-    `).join('');
+    
+    sel.innerHTML = '<option value="">-- اختر المعلم --</option>';
+    tbody.innerHTML = '';
+
+    for(let key in teachersData) {
+        const t = teachersData[key];
+        sel.innerHTML += `<option value="${key}">${t.name}</option>`;
+        tbody.innerHTML += `<tr><td>${t.name}</td><td>
+            <button onclick="editTeacher('${key}')">تعديل</button>
+            <button onclick="deleteTeacher('${key}')" style="color:red">حذف</button>
+        </td></tr>`;
+    }
 }
 
 function displayPortfolio() {
-    const i = document.getElementById('teacherSelect').value;
+    const key = document.getElementById('teacherSelect').value;
     const card = document.getElementById('portfolioCard');
-    if(i === "") { card.style.display = 'none'; return; }
+    if(!key) { card.style.display = 'none'; return; }
 
-    const t = teachers[i];
+    const t = teachersData[key];
     document.getElementById('outName').innerText = t.name;
     document.getElementById('outSubject').innerText = t.subject;
     document.getElementById('outAch').innerText = t.ach;
@@ -69,35 +89,28 @@ function displayPortfolio() {
     card.style.display = 'block';
 }
 
-function fillList(id, arr) {
+function fillList(id, str) {
     const el = document.getElementById(id);
-    el.innerHTML = arr.map(item => item.trim() ? `<li>${item.trim()}</li>` : '').join('');
+    el.innerHTML = str.split(',').map(i => i.trim() ? `<li>${i.trim()}</li>` : '').join('');
 }
 
-function deleteTeacher(i) {
-    if(confirm("هل أنت متأكد من حذف هذا المعلم؟")) {
-        teachers.splice(i, 1);
-        localStorage.setItem('eduData', JSON.stringify(teachers));
-        refreshUI();
-    }
+function deleteTeacher(key) {
+    if(confirm("حذف نهائي من السحابة؟")) db.ref('teachers/' + key).remove();
 }
 
-function editTeacher(i) {
-    const t = teachers[i];
+function editTeacher(key) {
+    const t = teachersData[key];
     document.getElementById('inName').value = t.name;
     document.getElementById('inSubject').value = t.subject;
     document.getElementById('inAch').value = t.ach;
-    document.getElementById('inTools').value = t.tools.join(',');
-    document.getElementById('inActions').value = t.actions.join(',');
-    document.getElementById('inImpact').value = t.impact.join(',');
+    document.getElementById('inTools').value = t.tools;
+    document.getElementById('inActions').value = t.actions;
+    document.getElementById('inImpact').value = t.impact;
     document.getElementById('inBadge').value = t.badge;
-    document.getElementById('editIdx').value = i;
-    window.scrollTo(0,0);
+    document.getElementById('editKey').value = key;
 }
 
 function clearForm() {
     document.querySelectorAll('input, textarea').forEach(el => el.value = "");
-    document.getElementById('editIdx').value = "";
+    document.getElementById('editKey').value = "";
 }
-
-refreshUI();
