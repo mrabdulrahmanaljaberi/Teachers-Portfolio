@@ -19,13 +19,12 @@ function showPage(p) {
     }
     document.getElementById('viewPage').style.display = p === 'view' ? 'block' : 'none';
     document.getElementById('adminPage').style.display = p === 'admin' ? 'block' : 'none';
+    document.getElementById('navView').className = p === 'view' ? 'active' : '';
+    document.getElementById('navAdmin').className = p === 'admin' ? 'active' : '';
 }
 
 function saveData() {
     const key = document.getElementById('editKey').value;
-    const timestamp = new Date().toLocaleString('ar-SA');
-    const achievementID = key ? key : "ACH-" + Date.now(); // رقم فريد لكل إنجاز
-
     const data = {
         name: document.getElementById('inName').value,
         subject: document.getElementById('inSubject').value,
@@ -34,69 +33,56 @@ function saveData() {
         actions: document.getElementById('inActions').value,
         impact: document.getElementById('inImpact').value,
         badge: document.getElementById('inBadge').value,
-        pdfUrl: document.getElementById('inPdf').value,
-        date: timestamp,
-        idNumber: achievementID
+        pdfUrl: document.getElementById('inPdf').value
     };
 
-    if (!data.name || !data.ach) {
-        alert("يرجى ملء اسم المعلم ونوع الإنجاز على الأقل");
-        return;
+    if(!data.name || !data.ach) return alert("يرجى إكمال البيانات الأساسية");
+
+    if(key) {
+        db.ref('teachers/' + key).set(data);
+    } else {
+        db.ref('teachers').push(data);
     }
-
-    // الحفظ في قاعدة البيانات
-    db.ref('teachers/' + achievementID).set(data).then(() => {
-        alert("تم حفظ الإنجاز بنجاح برقم: " + achievementID);
-        resetForm();
-    });
+    alert("تم التوثيق بنجاح!");
+    clearForm();
 }
 
-function resetForm() {
-    document.getElementById('editKey').value = "";
-    document.querySelectorAll('#adminPage input, #adminPage textarea').forEach(el => el.value = "");
-}
-
-// تحديث البيانات في الوقت الفعلي
 db.ref('teachers').on('value', (snapshot) => {
     teachersData = snapshot.val() || {};
-    updateSelectors();
-    updateAdminTable();
+    refreshUI();
 });
 
-function updateSelectors() {
+function refreshUI() {
     const sel = document.getElementById('teacherSelect');
-    sel.innerHTML = '<option value="">-- اختر الإنجاز (بالرقم والمعلم) --</option>';
-    
-    // ترتيب الإنجازات من الأحدث للأقدم
-    Object.keys(teachersData).reverse().forEach(key => {
+    const tbody = document.getElementById('tableBody');
+    sel.innerHTML = '<option value="">-- اختر الإنجاز للمراجعة --</option>';
+    tbody.innerHTML = '';
+    for(let key in teachersData) {
         const t = teachersData[key];
-        const opt = document.createElement('option');
-        opt.value = key;
-        opt.textContent = `${t.idNumber} - ${t.name} (${t.ach.substring(0, 20)}...)`;
-        sel.appendChild(opt);
-    });
+        sel.innerHTML += `<option value="${key}">${t.name} - ${t.ach.substring(0,30)}...</option>`;
+        tbody.innerHTML += `<tr style="border-bottom:1px solid #eee;"><td style="padding:10px;">${t.name}</td><td>
+            <button onclick="editTeacher('${key}')" style="background:#00695c; color:white; border:none; padding:5px 12px; border-radius:5px; cursor:pointer; margin-left:5px;">تعديل</button>
+            <button onclick="deleteTeacher('${key}')" style="background:#d32f2f; color:white; border:none; padding:5px 12px; border-radius:5px; cursor:pointer;">حذف</button>
+        </td></tr>`;
+    }
 }
 
 function displayPortfolio() {
     const key = document.getElementById('teacherSelect').value;
     const card = document.getElementById('portfolioCard');
-    const pdfSec = document.getElementById('pdfSection');
-    
     if(!key) { card.style.display = 'none'; return; }
 
     const t = teachersData[key];
     document.getElementById('outName').innerText = t.name;
     document.getElementById('outSubject').innerText = t.subject;
     document.getElementById('outAch').innerText = t.ach;
-    document.getElementById('outDate').innerText = "تاريخ الإدراج: " + t.date;
-    document.getElementById('outID').innerText = "رقم الإنجاز المرجعي: " + t.idNumber;
     document.getElementById('outBadge').innerText = "ميثاق التميز: " + t.badge;
 
     if(t.pdfUrl && t.pdfUrl.trim() !== "") {
         document.getElementById('outPdf').href = t.pdfUrl;
-        pdfSec.style.display = 'block';
+        document.getElementById('pdfSection').style.display = 'block';
     } else {
-        pdfSec.style.display = 'none';
+        document.getElementById('pdfSection').style.display = 'none';
     }
 
     fillList('outTools', t.tools);
@@ -110,23 +96,6 @@ function fillList(id, str) {
     el.innerHTML = str.split(',').map(i => i.trim() ? `<li>${i.trim()}</li>` : '').join('');
 }
 
-function updateAdminTable() {
-    const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = "";
-    Object.keys(teachersData).forEach(key => {
-        const t = teachersData[key];
-        tbody.innerHTML += `
-            <tr>
-                <td>${t.name} <br> <small>${t.idNumber}</small></td>
-                <td>
-                    <button onclick="editTeacher('${key}')">تعديل</button>
-                    <button onclick="deleteTeacher('${key}')" style="background:red">حذف</button>
-                </td>
-            </tr>
-        `;
-    });
-}
-
 function editTeacher(key) {
     const t = teachersData[key];
     document.getElementById('inName').value = t.name;
@@ -138,11 +107,14 @@ function editTeacher(key) {
     document.getElementById('inBadge').value = t.badge;
     document.getElementById('inPdf').value = t.pdfUrl || "";
     document.getElementById('editKey').value = key;
-    window.scrollTo(0,0);
+    showPage('admin');
 }
 
 function deleteTeacher(key) {
-    if(confirm("هل أنت متأكد من حذف هذا الإنجاز نهائياً؟")) {
-        db.ref('teachers/' + key).remove();
-    }
+    if(confirm("هل أنت متأكد من حذف هذا السجل؟")) db.ref('teachers/' + key).remove();
+}
+
+function clearForm() {
+    document.querySelectorAll('#adminPage input, #adminPage textarea').forEach(el => el.value = "");
+    document.getElementById('editKey').value = "";
 }

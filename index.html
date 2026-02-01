@@ -14,79 +14,73 @@
         <button id="navAdmin" onclick="showPage('admin')">⚙️ إضافة إنجاز جديد</button>
     </nav>
 
-    <div class="container">
-        <div id="viewPage">
-            <div class="search-section">
-                <h2>بوابة إنجازات المعلمين (السجل التراكمي)</h2>
-                <select id="teacherSelect" onchange="displayPortfolio()">
-                    <option value="">-- اختر الإنجاز للمراجعة --</option>
-                </select>
-            </div>
-            
-            <div id="portfolioCard" class="portfolio-card" style="display:none">
-                <div class="card-header">
-                    <div class="avatar-circle">📋</div>
-                    <div>
-                        <h1 id="outName">اسم المعلم</h1>
-                        <p id="outSubject">التخصص</p>
-                        <small id="outID" style="color: #ffb300; font-weight: bold;"></small><br>
-                        <small id="outDate" style="color: #666;"></small>
-                    </div>
-                </div>
-
-                <div class="section-title">✨ نوع الإنجاز</div>
-                <p id="outAch" class="content-text"></p>
-
-                <div class="info-grid">
-                    <div class="info-box">
-                        <h3>🛠️ الأدوات المستخدمة</h3>
-                        <ul id="outTools"></ul>
-                    </div>
-                    <div class="info-box">
-                        <h3>🚀 الإجراءات المنفذة</h3>
-                        <ul id="outActions"></ul>
-                    </div>
-                </div>
-
-                <div class="info-box full-width-box">
-                    <h3>🌟 الأثر التعليمي</h3>
-                    <ul id="outImpact"></ul>
-                </div>
-
-                <div class="badge-box">
-                    <p id="outBadge"></p>
-                </div>
-
-                <div id="pdfSection" class="pdf-download" style="display:none">
-                    <a id="outPdf" href="#" target="_blank" class="btn-pdf">📂 عرض مستندات الإثبات (PDF)</a>
-                </div>
-            </div>
+    <div id="viewPage" class="container">
+        <div style="text-align:center; padding:30px;">
+            <h2 style="margin-bottom:15px; color:#00695c;">بوابة إنجازات المعلمين الموثقة</h2>
+            <select id="teacherSelect" onchange="displayPortfolio()" style="width:100%; max-width:500px; padding:12px; border-radius:10px; border:2px solid #00695c;">
+                <option value="">-- اختر الإنجاز للمراجعة --</option>
+            </select>
         </div>
-
-        <div id="adminPage" style="display:none">
-            <div class="admin-section">
-                <h2>توثيق إنجاز جديد</h2>
-                <div class="form-grid">
-                    <div class="full-width"><label>اسم المعلم</label><input type="text" id="inName" placeholder="مثلاً: عبدالرحمن الجابري"></div>
-                    <div class="full-width"><label>التخصص</label><input type="text" id="inSubject"></div>
-                    <div class="full-width"><label>نوع الإنجاز</label><textarea id="inAch" placeholder="صف الإنجاز باختصار..."></textarea></div>
-                    <div><label>الأدوات (فاصلة بينها)</label><input type="text" id="inTools"></div>
-                    <div><label>الإجراءات (فاصلة بينها)</label><input type="text" id="inActions"></div>
-                    <div><label>الأثر (فاصلة بينها)</label><input type="text" id="inImpact"></div>
-                    <div><label>ميثاق التميز</label><input type="text" id="inBadge"></div>
-                    <div class="full-width"><label>رابط ملف الإثبات (Google Drive)</label><input type="url" id="inPdf"></div>
+        
+        <div id="portfolioCard" style="display:none;">
+            <div class="card-header">
+                <div class="avatar-circle">👨‍🏫</div>
+                <div>
+                    <h1 id="outName" style="font-size:2.5rem; margin:0;"></h1>
+                    <p id="outSubject" style="font-size:1.2rem; opacity:0.9;"></p>
                 </div>
-                <input type="hidden" id="editKey" value="">
-                <button class="btn-main" onclick="saveData()">حفظ في السجل السنوي</button>
-                
-                <h3>قائمة الإنجازات المحفوظة</h3>
-                <table class="teacher-table">
-                    <thead><tr><th>المعلم والرقم</th><th>العمليات</th></tr></thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
             </div>
+
+            <div class="grid-content">
+                <div class="info-box bg-green">
+                    <h3>📋 الإنجاز</h3>
+                    <p id="outAch" style="text-align:center; font-weight:bold;"></p>
+                </div>
+                <div class="info-box bg-blue">
+                    <h3>🛠️ الأدوات</h3>
+                    <ul id="outTools"></ul>
+                </div>
+                <div class="info-box bg-orange">
+                    <h3>🚀 الإجراءات</h3>
+                    <ul id="outActions"></ul>
+                </div>
+            </div>
+
+            <div style="max-width:960px; margin:20px auto; padding:25px; border-radius:15px;" class="info-box bg-gold">
+                <h3>✨ الأثر التعليمي والمخرجات</h3>
+                <ul id="outImpact"></ul>
+            </div>
+
+            <div id="pdfSection" style="text-align:center; padding:30px; display:none;">
+                <a id="outPdf" href="#" target="_blank" style="background:#d32f2f; color:white; padding:15px 40px; border-radius:35px; text-decoration:none; font-weight:bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">📂 عرض ملف الإثبات الكامل (PDF)</a>
+            </div>
+            <div id="outBadge" style="text-align:center; padding:20px; background:#f0f0f0; border-top:1px solid #ddd; font-weight:bold; color:#00695c;"></div>
         </div>
     </div>
+
+    <div id="adminPage" style="display:none;">
+        <div class="admin-section">
+            <h2 style="text-align:center; margin-bottom:25px; color:#00695c;">توثيق إنجاز جديد في السجل السنوي</h2>
+            <div class="form-grid">
+                <div class="full-width"><label>اسم المعلم</label><input type="text" id="inName"></div>
+                <div class="full-width"><label>التخصص</label><input type="text" id="inSubject"></div>
+                <div class="full-width"><label>نوع الإنجاز (العنوان الرئيسي)</label><textarea id="inAch" style="height:60px;"></textarea></div>
+                <div><label>الأدوات (فاصلة بين كل أداة)</label><input type="text" id="inTools" placeholder="مثال: كتاب، سبورة، فيديو"></div>
+                <div><label>الإجراءات (فاصلة بين كل إجراء)</label><input type="text" id="inActions" placeholder="مثال: تقسيم الطلاب، عرض بوربوينت"></div>
+                <div><label>الأثر (فاصلة بين كل مخرج)</label><input type="text" id="inImpact" placeholder="مثال: تحسن النطق، زيادة التفاعل"></div>
+                <div><label>ميثاق التميز</label><input type="text" id="inBadge"></div>
+                <div class="full-width"><label>رابط ملف الإثبات (Google Drive / PDF)</label><input type="url" id="inPdf"></div>
+            </div>
+            <input type="hidden" id="editKey" value="">
+            <button class="btn-main" onclick="saveData()">حفظ ونشر الإنجاز</button>
+            <h3 style="margin-top:40px; border-bottom:2px solid #eee; padding-bottom:10px;">الإنجازات المسجلة حالياً</h3>
+            <table style="width:100%; margin-top:15px; border-collapse:collapse; text-align:right;">
+                <thead><tr style="background:#f8f9fa;"><th>المعلم</th><th>التحكم</th></tr></thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
