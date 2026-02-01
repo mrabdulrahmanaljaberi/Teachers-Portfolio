@@ -25,6 +25,10 @@ function showPage(p) {
 
 function saveData() {
     const key = document.getElementById('editKey').value;
+    const timestamp = new Date().toLocaleString('ar-SA');
+    // توليد رقم مرجعي عشوائي بسيط إذا لم يكن موجوداً
+    const refID = key ? key : "REF-" + Math.floor(Math.random() * 100000);
+
     const data = {
         name: document.getElementById('inName').value,
         subject: document.getElementById('inSubject').value,
@@ -33,18 +37,16 @@ function saveData() {
         actions: document.getElementById('inActions').value,
         impact: document.getElementById('inImpact').value,
         badge: document.getElementById('inBadge').value,
-        pdfUrl: document.getElementById('inPdf').value
+        pdfUrl: document.getElementById('inPdf').value,
+        idNumber: refID // تم التأكد من حفظ الرقم هنا
     };
 
     if(!data.name || !data.ach) return alert("يرجى إكمال البيانات الأساسية");
 
-    if(key) {
-        db.ref('teachers/' + key).set(data);
-    } else {
-        db.ref('teachers').push(data);
-    }
-    alert("تم التوثيق بنجاح!");
-    clearForm();
+    db.ref('teachers/' + refID).set(data).then(() => {
+        alert("تم التوثيق بنجاح بالرقم: " + refID);
+        clearForm();
+    });
 }
 
 db.ref('teachers').on('value', (snapshot) => {
@@ -57,11 +59,19 @@ function refreshUI() {
     const tbody = document.getElementById('tableBody');
     sel.innerHTML = '<option value="">-- اختر الإنجاز للمراجعة --</option>';
     tbody.innerHTML = '';
+    
     for(let key in teachersData) {
         const t = teachersData[key];
-        sel.innerHTML += `<option value="${key}">${t.name} - ${t.ach.substring(0,30)}...</option>`;
-        tbody.innerHTML += `<tr style="border-bottom:1px solid #eee;"><td style="padding:10px;">${t.name}</td><td>
-            <button onclick="editTeacher('${key}')" style="background:#00695c; color:white; border:none; padding:5px 12px; border-radius:5px; cursor:pointer; margin-left:5px;">تعديل</button>
+        // إصلاح undefined: نستخدم key إذا لم يتوفر idNumber
+        const displayID = t.idNumber ? t.idNumber : key;
+        
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = `${displayID} - ${t.name} (${t.ach.substring(0,20)}...)`;
+        sel.appendChild(opt);
+
+        tbody.innerHTML += `<tr style="border-bottom:1px solid #eee;"><td style="padding:10px;">${t.name} (${displayID})</td><td>
+            <button onclick="editTeacher('${key}')" style="background:#00695c; color:white; border:none; padding:5px 12px; border-radius:5px; cursor:pointer;">تعديل</button>
             <button onclick="deleteTeacher('${key}')" style="background:#d32f2f; color:white; border:none; padding:5px 12px; border-radius:5px; cursor:pointer;">حذف</button>
         </td></tr>`;
     }
@@ -111,7 +121,7 @@ function editTeacher(key) {
 }
 
 function deleteTeacher(key) {
-    if(confirm("هل أنت متأكد من حذف هذا السجل؟")) db.ref('teachers/' + key).remove();
+    if(confirm("هل تريد حذف هذا السجل؟")) db.ref('teachers/' + key).remove();
 }
 
 function clearForm() {
