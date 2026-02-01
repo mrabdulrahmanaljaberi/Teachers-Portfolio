@@ -23,6 +23,9 @@ function showPage(p) {
 
 function saveData() {
     const key = document.getElementById('editKey').value;
+    const timestamp = new Date().toLocaleString('ar-SA');
+    const achievementID = key ? key : "ACH-" + Date.now(); // رقم فريد لكل إنجاز
+
     const data = {
         name: document.getElementById('inName').value,
         subject: document.getElementById('inSubject').value,
@@ -31,38 +34,47 @@ function saveData() {
         actions: document.getElementById('inActions').value,
         impact: document.getElementById('inImpact').value,
         badge: document.getElementById('inBadge').value,
-        pdfUrl: document.getElementById('inPdf').value // حفظ الرابط
+        pdfUrl: document.getElementById('inPdf').value,
+        date: timestamp,
+        idNumber: achievementID
     };
 
-    if(!data.name) return alert("الاسم مطلوب");
-
-    if(key) {
-        db.ref('teachers/' + key).set(data);
-    } else {
-        db.ref('teachers').push(data);
+    if (!data.name || !data.ach) {
+        alert("يرجى ملء اسم المعلم ونوع الإنجاز على الأقل");
+        return;
     }
-    alert("تم الحفظ بنجاح!");
-    clearForm();
+
+    // الحفظ في قاعدة البيانات
+    db.ref('teachers/' + achievementID).set(data).then(() => {
+        alert("تم حفظ الإنجاز بنجاح برقم: " + achievementID);
+        resetForm();
+    });
 }
 
+function resetForm() {
+    document.getElementById('editKey').value = "";
+    document.querySelectorAll('#adminPage input, #adminPage textarea').forEach(el => el.value = "");
+}
+
+// تحديث البيانات في الوقت الفعلي
 db.ref('teachers').on('value', (snapshot) => {
     teachersData = snapshot.val() || {};
-    refreshUI();
+    updateSelectors();
+    updateAdminTable();
 });
 
-function refreshUI() {
+function updateSelectors() {
     const sel = document.getElementById('teacherSelect');
-    const tbody = document.getElementById('tableBody');
-    sel.innerHTML = '<option value="">-- اختر المعلم --</option>';
-    tbody.innerHTML = '';
-    for(let key in teachersData) {
+    sel.innerHTML = '<option value="">-- اختر الإنجاز (بالرقم والمعلم) --</option>';
+    
+    // ترتيب الإنجازات من الأحدث للأقدم
+    Object.keys(teachersData).reverse().forEach(key => {
         const t = teachersData[key];
-        sel.innerHTML += `<option value="${key}">${t.name}</option>`;
-        tbody.innerHTML += `<tr><td>${t.name}</td><td>
-            <button onclick="editTeacher('${key}')">تعديل</button>
-            <button onclick="deleteTeacher('${key}')" style="color:red">حذف</button>
-        </td></tr>`;
-    }
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = `${t.idNumber} - ${t.name} (${t.ach.substring(0, 20)}...)`;
+        sel.appendChild(opt);
+    });
 }
 
 function displayPortfolio() {
@@ -76,9 +88,10 @@ function displayPortfolio() {
     document.getElementById('outName').innerText = t.name;
     document.getElementById('outSubject').innerText = t.subject;
     document.getElementById('outAch').innerText = t.ach;
+    document.getElementById('outDate').innerText = "تاريخ الإدراج: " + t.date;
+    document.getElementById('outID').innerText = "رقم الإنجاز المرجعي: " + t.idNumber;
     document.getElementById('outBadge').innerText = "ميثاق التميز: " + t.badge;
 
-    // عرض زر الـ PDF إذا كان الرابط موجوداً
     if(t.pdfUrl && t.pdfUrl.trim() !== "") {
         document.getElementById('outPdf').href = t.pdfUrl;
         pdfSec.style.display = 'block';
@@ -97,6 +110,23 @@ function fillList(id, str) {
     el.innerHTML = str.split(',').map(i => i.trim() ? `<li>${i.trim()}</li>` : '').join('');
 }
 
+function updateAdminTable() {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = "";
+    Object.keys(teachersData).forEach(key => {
+        const t = teachersData[key];
+        tbody.innerHTML += `
+            <tr>
+                <td>${t.name} <br> <small>${t.idNumber}</small></td>
+                <td>
+                    <button onclick="editTeacher('${key}')">تعديل</button>
+                    <button onclick="deleteTeacher('${key}')" style="background:red">حذف</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
 function editTeacher(key) {
     const t = teachersData[key];
     document.getElementById('inName').value = t.name;
@@ -106,15 +136,13 @@ function editTeacher(key) {
     document.getElementById('inActions').value = t.actions;
     document.getElementById('inImpact').value = t.impact;
     document.getElementById('inBadge').value = t.badge;
-    document.getElementById('inPdf').value = t.pdfUrl || ""; // تعبئة حقل الرابط عند التعديل
+    document.getElementById('inPdf').value = t.pdfUrl || "";
     document.getElementById('editKey').value = key;
+    window.scrollTo(0,0);
 }
 
 function deleteTeacher(key) {
-    if(confirm("حذف نهائي؟")) db.ref('teachers/' + key).remove();
-}
-
-function clearForm() {
-    document.querySelectorAll('input, textarea').forEach(el => el.value = "");
-    document.getElementById('editKey').value = "";
+    if(confirm("هل أنت متأكد من حذف هذا الإنجاز نهائياً؟")) {
+        db.ref('teachers/' + key).remove();
+    }
 }
