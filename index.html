@@ -2,61 +2,68 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة إنجاز المعلمين الاحترافية</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
     <nav>
-        <button id="navView" class="active" onclick="showPage('view')">👁️ عرض السجل السنوي</button>
-        <button id="navAdmin" onclick="showPage('admin')">⚙️ إضافة إنجاز جديد</button>
+        <button id="navView" class="active" onclick="showPage('view')">👁️ عرض الإنجازات</button>
+        <button id="navAdmin" onclick="showPage('admin')">⚙️ لوحة التحكم</button>
     </nav>
 
-    <div id="viewPage">
-        <div style="text-align:center; padding:20px;">
-            <select id="teacherSelect" onchange="displayPortfolio()" style="width:100%; max-width:400px; padding:10px; border-radius:10px;">
-                <option value="">-- اختر الإنجاز للمراجعة --</option>
-            </select>
+    <div class="container">
+        <div id="viewPage">
+            <div class="search-section">
+                <h2>بوابة إنجاز المعلمين الرقمية</h2>
+                <select id="teacherSelect" onchange="displayPortfolio()">
+                    <option value="">-- اختر اسم المعلم للاستعراض --</option>
+                </select>
+            </div>
+            
+            <div id="portfolioCard" class="portfolio-card" style="display:none">
+                <div class="card-header">
+                    <div class="avatar-circle">👨‍🏫</div>
+                    <div><h1 id="outName"></h1><p id="outSubject"></p></div>
+                </div>
+                <div class="grid-content">
+                    <div class="info-box bg-green"><h3>📋 الإنجاز</h3><p id="outAch"></p></div>
+                    <div class="info-box bg-blue"><h3>🛠️ الأدوات</h3><ul id="outTools"></ul></div>
+                    <div class="info-box bg-orange"><h3>🚀 الإجراءات</h3><ul id="outActions"></ul></div>
+                    <div class="info-box bg-gold"><h3>✨ الأثر</h3><ul id="outImpact"></ul></div>
+                </div>
+                <div id="pdfSection" style="margin: 20px; text-align: center; display:none;">
+                    <a id="outPdf" href="#" target="_blank" class="btn-pdf">📂 عرض ملف PDF الإنجاز</a>
+                </div>
+                <div id="outBadge" class="card-footer"></div>
+            </div>
         </div>
-        
-        <div id="portfolioCard" style="display:none;">
-            <div class="card-header">
-                <div class="avatar-circle">👨‍🏫</div>
-                <div><h1 id="outName"></h1><p id="outSubject"></p></div>
-            </div>
 
-            <div class="grid-content">
-                <div class="info-box bg-green"><h3>📋 الإنجاز</h3><p id="outAch" style="text-align:center;"></p></div>
-                <div class="info-box bg-blue"><h3>🛠️ الأدوات</h3><ul id="outTools"></ul></div>
-                <div class="info-box bg-orange"><h3>🚀 الإجراءات</h3><ul id="outActions"></ul></div>
+        <div id="adminPage" style="display:none">
+            <div class="admin-section">
+                <h2 id="formTitle">إضافة / تعديل بيانات معلم</h2>
+                <div class="form-grid">
+                    <div class="full-width"><label>اسم المعلم</label><input type="text" id="inName"></div>
+                    <div><label>التخصص</label><input type="text" id="inSubject"></div>
+                    <div><label>كلمة مرور خاصة (للتعديل مستقبلاً)</label><input type="text" id="inPass" placeholder="اختر رمزاً خاصاً"></div>
+                    <div class="full-width"><label>نوع الإنجاز</label><textarea id="inAch"></textarea></div>
+                    <div><label>الأدوات (فاصلة بينها)</label><input type="text" id="inTools"></div>
+                    <div><label>الإجراءات (فاصلة بينها)</label><input type="text" id="inActions"></div>
+                    <div><label>الأثر (فاصلة بينها)</label><input type="text" id="inImpact"></div>
+                    <div><label>ميثاق التميز</label><input type="text" id="inBadge"></div>
+                    <div class="full-width"><label>رابط ملف الإنجاز (Drive)</label><input type="url" id="inPdf"></div>
+                </div>
+                <input type="hidden" id="editKey" value="">
+                <button class="btn-main" onclick="saveData()">حفظ البيانات سحابياً</button>
+                <div id="adminTableContainer">
+                    <table class="teacher-table">
+                        <thead><tr><th>المعلم</th><th>العمليات</th></tr></thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
             </div>
-
-            <div style="margin:20px; padding:20px; background:#fff9c4; border-radius:15px; border-right:8px solid #fbc02d;">
-                <h3>✨ الأثر التعليمي</h3>
-                <ul id="outImpact"></ul>
-            </div>
-
-            <div id="pdfSection" style="text-align:center; padding:20px; display:none;">
-                <a id="outPdf" href="#" target="_blank" style="background:#d32f2f; color:white; padding:10px 30px; border-radius:20px; text-decoration:none;">📂 ملف الإثبات</a>
-            </div>
-            <div id="outBadge" style="text-align:center; padding:15px; font-weight:bold;"></div>
-        </div>
-    </div>
-
-    <div id="adminPage" style="display:none; padding:20px;">
-        <div style="max-width:800px; margin:auto; background:white; padding:20px; border-radius:15px;">
-            <h2>إضافة إنجاز</h2>
-            <input type="text" id="inName" placeholder="اسم المعلم" style="width:100%; margin:10px 0; padding:10px;">
-            <input type="text" id="inSubject" placeholder="التخصص" style="width:100%; margin:10px 0; padding:10px;">
-            <textarea id="inAch" placeholder="نوع الإنجاز" style="width:100%; margin:10px 0; padding:10px;"></textarea>
-            <input type="text" id="inTools" placeholder="الأدوات (فاصلة بينها)" style="width:100%; margin:10px 0; padding:10px;">
-            <input type="text" id="inActions" placeholder="الإجراءات (فاصلة بينها)" style="width:100%; margin:10px 0; padding:10px;">
-            <input type="text" id="inImpact" placeholder="الأثر (فاصلة بينها)" style="width:100%; margin:10px 0; padding:10px;">
-            <input type="text" id="inBadge" placeholder="ميثاق التميز" style="width:100%; margin:10px 0; padding:10px;">
-            <input type="url" id="inPdf" placeholder="رابط الملف" style="width:100%; margin:10px 0; padding:10px;">
-            <input type="hidden" id="editKey">
-            <button onclick="saveData()" style="width:100%; padding:15px; background:#00695c; color:white; border:none; border-radius:10px;">حفظ</button>
-            <table style="width:100%; margin-top:20px;"><tbody id="tableBody"></tbody></table>
         </div>
     </div>
     <script src="script.js"></script>
