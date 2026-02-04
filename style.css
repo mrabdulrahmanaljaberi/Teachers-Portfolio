@@ -1,44 +1,99 @@
+/* المتغيرات الأساسية للألوان */
 :root {
-    --primary-color: #00695c;
-    --secondary-color: #ffb300;
+    --primary: #00695c;      /* أخضر زيتي للمدرسة */
+    --secondary: #ffb300;    /* ذهبي للتميز */
+    --danger: #d32f2f;       /* أحمر للـ PDF والحذف */
+    --bg: #f0f4f3;           /* خلفية هادئة */
+    --white: #ffffff;
+    --shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-body { background-color: #f4f7f6; direction: rtl; }
-
-nav { background-color: var(--primary-color); padding: 15px; display: flex; justify-content: center; gap: 15px; }
-nav button { padding: 10px 25px; border-radius: 25px; border: none; cursor: pointer; font-weight: bold; background: rgba(255,255,255,0.2); color: white; }
-nav button.active { background-color: var(--secondary-color); color: #000; }
-
-.card-header { 
-    background-color: var(--primary-color); 
-    color: white; 
-    padding: 40px; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    gap: 30px;
-    border-radius: 0 0 20px 20px;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
 }
 
-.avatar-circle { width: 90px; height: 90px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.4); display: flex; align-items: center; justify-content: center; font-size: 3rem; background: rgba(255,255,255,0.1); }
+body {
+    background-color: var(--bg);
+    direction: rtl;
+    color: #333;
+}
 
-.grid-content { 
-    display: grid; 
-    grid-template-columns: repeat(3, 1fr); 
-    gap: 15px; 
+/* القائمة العلوية */
+nav {
+    background-color: var(--primary);
+    padding: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+nav button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+nav button.active, nav button:hover {
+    background: var(--secondary);
+    color: var(--primary);
+}
+
+/* الحاوية الرئيسية */
+.container {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 10px;
+}
+
+/* بطاقة العرض الرئيسية */
+.portfolio-card {
+    background: var(--white);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-top: 20px;
+}
+
+.card-header {
+    background: linear-gradient(45deg, var(--primary), #004d40);
+    color: white;
+    padding: 30px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.avatar-circle {
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+}
+
+/* شبكة محتوى البيانات */
+.grid-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
     padding: 20px;
 }
 
-.info-box { background: white; padding: 20px; border-radius: 15px; min-height: 350px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-
-.bg-green { border-top: 10px solid #c8e6c9; }
-.bg-blue { border-top: 10px solid #bbdefb; }
-.bg-orange { border-top: 10px solid #ffecb3; }
-
-.info-box h3 { text-align: center; margin-bottom: 15px; }
-.info-box ul { list-style: none; }
-.info-box li { position: relative; padding-right: 20px; margin-bottom: 10px; }
-.info-box li::before { content: "•"; position: absolute; right: 0; font-weight: bold; }
-
-@media (max-width: 800px) { .grid-content { grid-template-columns: 1fr; } }
+.info-box {
+    padding: 15px;
+    border
