@@ -3,71 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة إنجاز المعلمين الاحترافية</title>
+    <title>الحقيبة الرقمية المهنية | أرشيف الإنجاز</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
+    <div id="loading" class="loader">جاري تحميل ميثاق التميز...</div>
+
     <nav>
-        <button id="navView" class="active" onclick="showPage('view')">👁️ عرض الإنجازات</button>
-        <button id="navAdmin" onclick="showPage('admin')">⚙️ لوحة التحكم</button>
+        <div class="nav-content">
+            <span class="logo">💎 محفظة الإنجاز الرقمية</span>
+            <div class="nav-btns">
+                <button onclick="showPage('view')">👁️ العرض العام</button>
+                <button onclick="showPage('admin')" class="btn-admin">⚙️ لوحة التحكم</button>
+            </div>
+        </div>
     </nav>
 
     <div class="container">
-        <div id="viewPage">
-            <div class="search-section">
-                <h2>بوابة إنجاز المعلمين الرقمية</h2>
-                <select id="teacherSelect" onchange="displayPortfolio()">
-                    <option value="">-- اختر اسم المعلم للاستعراض --</option>
-                </select>
-            </div>
-            
-            <div id="portfolioCard" class="portfolio-card" style="display:none">
-                <div class="card-header">
-                    <div class="avatar-circle">👨‍🏫</div>
-                    <div><h1 id="outName"></h1><p id="outSubject"></p></div>
+        <section id="viewPage">
+            <header class="hero-card">
+                <div class="profile-info">
+                    <div class="avatar">👨‍🏫</div>
+                    <div class="text">
+                        <h1 id="profName">اسم المعلم</h1>
+                        <p id="profSubj">التخصص المهني</p>
+                    </div>
                 </div>
-                <div class="grid-content">
-                    <div class="info-box bg-green"><h3>📋 الإنجاز</h3><p id="outAch"></p></div>
-                    <div class="info-box bg-blue"><h3>🛠️ الأدوات</h3><ul id="outTools"></ul></div>
-                    <div class="info-box bg-orange"><h3>🚀 الإجراءات</h3><ul id="outActions"></ul></div>
-                    <div class="info-box bg-gold"><h3>✨ الأثر</h3><ul id="outImpact"></ul></div>
+                <div class="vision-mission">
+                    <div class="v-box"><h4>الرؤية</h4><p id="outVision">رؤيتك المهنية هنا...</p></div>
+                    <div class="v-box"><h4>الرسالة</h4><p id="outMission">رسالتك التعليمية هنا...</p></div>
                 </div>
-                <div id="pdfSection" style="margin: 20px; text-align: center; display:none;">
-                    <a id="outPdf" href="#" target="_blank" class="btn-pdf">📂 عرض ملف PDF الإنجاز</a>
-                </div>
-                <div id="outBadge" class="card-footer"></div>
-            </div>
-        </div>
+            </header>
 
-        <div id="adminPage" style="display:none">
-            <div class="admin-section">
-                <h2 id="formTitle">إضافة / تعديل بيانات معلم</h2>
-                <div class="form-grid">
-                    <div class="full-width"><label>اسم المعلم</label><input type="text" id="inName"></div>
-                    <div><label>التخصص</label><input type="text" id="inSubject"></div>
-                    <div><label>كلمة مرور خاصة (للتعديل مستقبلاً)</label><input type="text" id="inPass" placeholder="اختر رمزاً خاصاً"></div>
-                    <div class="full-width"><label>نوع الإنجاز</label><textarea id="inAch"></textarea></div>
-                    <div><label>الأدوات (فاصلة بينها)</label><input type="text" id="inTools"></div>
-                    <div><label>الإجراءات (فاصلة بينها)</label><input type="text" id="inActions"></div>
-                    <div><label>الأثر (فاصلة بينها)</label><input type="text" id="inImpact"></div>
-                    <div><label>ميثاق التميز</label><input type="text" id="inBadge"></div>
-                    <div class="full-width"><label>رابط ملف الإنجاز (Drive)</label><input type="url" id="inPdf"></div>
-                </div>
-                <input type="hidden" id="editKey" value="">
-                <button class="btn-main" onclick="saveData()">حفظ البيانات سحابياً</button>
-                <div id="adminTableContainer">
-                    <table class="teacher-table">
-                        <thead><tr><th>المعلم</th><th>العمليات</th></tr></thead>
-                        <tbody id="tableBody"></tbody>
-                    </table>
-                </div>
+            <div class="archive-bar">
+                <label>اختر العام الدراسي للأرشفة:</label>
+                <select id="yearSelect" onchange="loadYearData()"></select>
             </div>
+
+            <div class="table-wrapper">
+                <table class="main-table">
+                    <thead>
+                        <tr>
+                            <th>العنصر الرئيسي</th>
+                            <th>الوزن</th>
+                            <th>اسم الشاهد البصري</th>
+                            <th>المرفقات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="viewTableBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="adminPage" style="display:none">
+            <div class="admin-card">
+                <h2>⚙️ إدارة المحتوى والأرشفة</h2>
+                <div class="admin-tools">
+                    <button onclick="autoFillCriteria()" class="btn-magic">✨ تعبئة المعايير آلياً</button>
+                    <input type="text" id="newYearInput" placeholder="مثال: 2026">
+                    <button onclick="addNewYear()">➕ إضافة عام جديد</button>
+                </div>
+
+                <div class="profile-edit">
+                    <input type="text" id="editName" placeholder="الاسم الكامل">
+                    <input type="text" id="editSubj" placeholder="التخصص">
+                    <textarea id="editVision" placeholder="الرؤية"></textarea>
+                    <textarea id="editMission" placeholder="الرسالة"></textarea>
+                </div>
+
+                <div id="adminFormContainer">
+                </div>
+                <button onclick="saveAllData()" class="btn-save">💾 حفظ وتوثيق الأرشيف</button>
+            </div>
+        </section>
+    </div>
+
+    <div id="galleryModal" class="modal" onclick="closeGallery()">
+        <span class="close">&times;</span>
+        <div class="modal-content">
+            <iframe id="galleryIframe" src="" frameborder="0"></iframe>
         </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
-
-

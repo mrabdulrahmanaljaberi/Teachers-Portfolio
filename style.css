@@ -1,99 +1,40 @@
-/* المتغيرات الأساسية للألوان */
 :root {
-    --primary: #00695c;      /* أخضر زيتي للمدرسة */
-    --secondary: #ffb300;    /* ذهبي للتميز */
-    --danger: #d32f2f;       /* أحمر للـ PDF والحذف */
-    --bg: #f0f4f3;           /* خلفية هادئة */
-    --white: #ffffff;
-    --shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Arial, sans-serif;
+    --glass: rgba(255, 255, 255, 0.8);
+    --primary: #2d5a27;
+    --accent: #d4af37;
 }
 
 body {
-    background-color: var(--bg);
-    direction: rtl;
-    color: #333;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
 }
 
-/* القائمة العلوية */
-nav {
-    background-color: var(--primary);
-    padding: 15px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-nav button {
-    padding: 10px 20px;
-    border: none;
+.hero-card {
+    background: var(--glass);
+    backdrop-filter: blur(10px);
     border-radius: 20px;
-    background: rgba(255,255,255,0.1);
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-nav button.active, nav button:hover {
-    background: var(--secondary);
-    color: var(--primary);
-}
-
-/* الحاوية الرئيسية */
-.container {
-    max-width: 900px;
-    margin: 20px auto;
-    padding: 10px;
-}
-
-/* بطاقة العرض الرئيسية */
-.portfolio-card {
-    background: var(--white);
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: var(--shadow);
-    margin-top: 20px;
-}
-
-.card-header {
-    background: linear-gradient(45deg, var(--primary), #004d40);
-    color: white;
     padding: 30px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
 }
 
-.avatar-circle {
-    width: 80px;
-    height: 80px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.5rem;
-}
+.profile-info { display: flex; align-items: center; gap: 20px; border-bottom: 2px solid var(--accent); padding-bottom: 20px; }
+.avatar { font-size: 4rem; background: white; border-radius: 50%; padding: 10px; }
 
-/* شبكة محتوى البيانات */
-.grid-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    padding: 20px;
-}
+.vision-mission { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+.v-box { background: rgba(0,0,0,0.05); padding: 15px; border-radius: 10px; }
 
-.info-box {
-    padding: 15px;
-    border
+.main-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
+.main-table th { background: var(--primary); color: white; padding: 15px; }
+.main-table td { background: white; padding: 15px; text-align: center; }
+.main-table tr:hover td { transform: scale(1.01); transition: 0.2s; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+
+.badge { background: var(--accent); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; }
+
+.btn-magic { background: linear-gradient(to right, #6a11cb, #2575fc); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
+
+/* Modal Styles */
+.modal { display: none; position: fixed; z-index: 2000; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
+.modal-content { width: 80%; height: 80%; margin: 5% auto; background: white; border-radius: 15px; overflow: hidden; }
+iframe { width: 100%; height: 100%; }
