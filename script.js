@@ -12,41 +12,51 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 let teachersData = {};
 
+// دالة جلب الـ IP للتوثيق
+async function getIP() {
+    try {
+        const res = await fetch('https://api.ipify.org?format=json');
+        const data = await res.json();
+        return data.ip;
+    } catch { return "Unknown"; }
+}
+
 function showPage(p) {
     if(p === 'admin') {
-        let pass = prompt("كلمة مرور الإدارة:");
-        if(pass !== "1234") return;
+        let pass = prompt("كلمة مرور الإدارة العامة:");
+        if(pass !== "1234") return; // كلمة مرور المشرف العام
     }
     document.getElementById('viewPage').style.display = p === 'view' ? 'block' : 'none';
     document.getElementById('adminPage').style.display = p === 'admin' ? 'block' : 'none';
-    document.getElementById('navView').className = p === 'view' ? 'active' : '';
-    document.getElementById('navAdmin').className = p === 'admin' ? 'active' : '';
 }
 
-function saveData() {
+async function saveData() {
     const key = document.getElementById('editKey').value;
-    const timestamp = new Date().toLocaleString('ar-SA');
-    // توليد رقم مرجعي عشوائي بسيط إذا لم يكن موجوداً
-    const refID = key ? key : "REF-" + Math.floor(Math.random() * 100000);
-
+    const userIP = await getIP();
+    
     const data = {
         name: document.getElementById('inName').value,
         subject: document.getElementById('inSubject').value,
+        pass: document.getElementById('inPass').value, // كلمة المرور الخاصة
         ach: document.getElementById('inAch').value,
         tools: document.getElementById('inTools').value,
         actions: document.getElementById('inActions').value,
         impact: document.getElementById('inImpact').value,
         badge: document.getElementById('inBadge').value,
         pdfUrl: document.getElementById('inPdf').value,
-        idNumber: refID // تم التأكد من حفظ الرقم هنا
+        lastEditIP: userIP,
+        lastEditTime: new Date().toLocaleString('ar-SA')
     };
 
-    if(!data.name || !data.ach) return alert("يرجى إكمال البيانات الأساسية");
+    if(!data.name || !data.pass) return alert("الاسم وكلمة المرور مطلوبان");
 
-    db.ref('teachers/' + refID).set(data).then(() => {
-        alert("تم التوثيق بنجاح بالرقم: " + refID);
-        clearForm();
-    });
+    if(key) {
+        db.ref('teachers/' + key).set(data);
+    } else {
+        db.ref('teachers').push(data);
+    }
+    alert("تم حفظ البيانات وتوثيق العملية بنجاح!");
+    clearForm();
 }
 
 db.ref('teachers').on('value', (snapshot) => {
@@ -57,24 +67,48 @@ db.ref('teachers').on('value', (snapshot) => {
 function refreshUI() {
     const sel = document.getElementById('teacherSelect');
     const tbody = document.getElementById('tableBody');
-    sel.innerHTML = '<option value="">-- اختر الإنجاز للمراجعة --</option>';
+    sel.innerHTML = '<option value="">-- اختر اسم المعلم --</option>';
     tbody.innerHTML = '';
-    
     for(let key in teachersData) {
         const t = teachersData[key];
-        // إصلاح undefined: نستخدم key إذا لم يتوفر idNumber
-        const displayID = t.idNumber ? t.idNumber : key;
-        
-        const opt = document.createElement('option');
-        opt.value = key;
-        opt.textContent = `${displayID} - ${t.name} (${t.ach.substring(0,20)}...)`;
-        sel.appendChild(opt);
-
-        tbody.innerHTML += `<tr style="border-bottom:1px solid #eee;"><td style="padding:10px;">${t.name} (${displayID})</td><td>
-            <button onclick="editTeacher('${key}')" style="background:#00695c; color:white; border:none; padding:5px 12px; border-radius:5px; cursor:pointer;">تعديل</button>
-            <button onclick="deleteTeacher('${key}')" style="background:#d32f2f; color:white; border:none; padding:5px 12px; border-radius:5px; cursor:pointer;">حذف</button>
+        sel.innerHTML += `<option value="${key}">${t.name}</option>`;
+        tbody.innerHTML += `<tr><td>${t.name}</td><td>
+            <button onclick="checkAuth('${key}', 'edit')">تعديل</button>
+            <button onclick="checkAuth('${key}', 'delete')" style="color:red">حذف</button>
         </td></tr>`;
     }
+}
+
+// دالة التحقق من هوية المعلم قبل أي تعديل
+function checkAuth(key, action) {
+    const t = teachersData[key];
+    const inputPass = prompt(`يرجى إدخال كلمة المرور الخاصة بالمعلم (${t.name}):`);
+    
+    if(inputPass === t.pass) {
+        if(action === 'edit') editTeacher(key);
+        else deleteTeacher(key);
+    } else {
+        alert("خطأ: كلمة المرور غير صحيحة. لا تملك صلاحية التعديل على هذا الاسم.");
+    }
+}
+
+function editTeacher(key) {
+    const t = teachersData[key];
+    document.getElementById('inName').value = t.name;
+    document.getElementById('inSubject').value = t.subject;
+    document.getElementById('inPass').value = t.pass;
+    document.getElementById('inAch').value = t.ach;
+    document.getElementById('inTools').value = t.tools;
+    document.getElementById('inActions').value = t.actions;
+    document.getElementById('inImpact').value = t.impact;
+    document.getElementById('inBadge').value = t.badge;
+    document.getElementById('inPdf').value = t.pdfUrl || "";
+    document.getElementById('editKey').value = key;
+    window.scrollTo(0,0);
+}
+
+function deleteTeacher(key) {
+    if(confirm("هل أنت متأكد من الحذف النهائي؟")) db.ref('teachers/' + key).remove();
 }
 
 function displayPortfolio() {
@@ -88,12 +122,11 @@ function displayPortfolio() {
     document.getElementById('outAch').innerText = t.ach;
     document.getElementById('outBadge').innerText = "ميثاق التميز: " + t.badge;
 
-    if(t.pdfUrl && t.pdfUrl.trim() !== "") {
+    const pdfSec = document.getElementById('pdfSection');
+    if(t.pdfUrl) {
         document.getElementById('outPdf').href = t.pdfUrl;
-        document.getElementById('pdfSection').style.display = 'block';
-    } else {
-        document.getElementById('pdfSection').style.display = 'none';
-    }
+        pdfSec.style.display = 'block';
+    } else { pdfSec.style.display = 'none'; }
 
     fillList('outTools', t.tools);
     fillList('outActions', t.actions);
@@ -106,25 +139,7 @@ function fillList(id, str) {
     el.innerHTML = str.split(',').map(i => i.trim() ? `<li>${i.trim()}</li>` : '').join('');
 }
 
-function editTeacher(key) {
-    const t = teachersData[key];
-    document.getElementById('inName').value = t.name;
-    document.getElementById('inSubject').value = t.subject;
-    document.getElementById('inAch').value = t.ach;
-    document.getElementById('inTools').value = t.tools;
-    document.getElementById('inActions').value = t.actions;
-    document.getElementById('inImpact').value = t.impact;
-    document.getElementById('inBadge').value = t.badge;
-    document.getElementById('inPdf').value = t.pdfUrl || "";
-    document.getElementById('editKey').value = key;
-    showPage('admin');
-}
-
-function deleteTeacher(key) {
-    if(confirm("هل تريد حذف هذا السجل؟")) db.ref('teachers/' + key).remove();
-}
-
 function clearForm() {
-    document.querySelectorAll('#adminPage input, #adminPage textarea').forEach(el => el.value = "");
+    document.querySelectorAll('input, textarea').forEach(el => el.value = "");
     document.getElementById('editKey').value = "";
 }
