@@ -3,87 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الحقيبة الرقمية المهنية | أرشيف الإنجاز</title>
+    <title>محفظة الإنجاز الرقمية الذكية</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
-    <div id="loading" class="loader">جاري تحميل ميثاق التميز...</div>
+    <div id="loading" class="loader-wrapper"><div class="loader"></div></div>
 
     <nav>
         <div class="nav-content">
-            <span class="logo">💎 محفظة الإنجاز الرقمية</span>
+            <span class="logo"><i class="fa-solid fa-robot"></i> مساعد الإنجاز الذكي</span>
             <div class="nav-btns">
-                <button onclick="showPage('view')">👁️ العرض العام</button>
-                <button onclick="showPage('admin')" class="btn-admin">⚙️ لوحة التحكم</button>
+                <button onclick="showPage('view')"><i class="fa-solid fa-eye"></i> واجهة العرض</button>
+                <button onclick="showPage('admin')" class="btn-admin-nav"><i class="fa-solid fa-gears"></i> لوحة التحكم</button>
             </div>
         </div>
     </nav>
 
     <div class="container">
         <section id="viewPage">
-            <header class="hero-card">
-                <div class="profile-info">
-                    <div class="avatar">👨‍🏫</div>
-                    <div class="text">
-                        <h1 id="profName">اسم المعلم</h1>
-                        <p id="profSubj">التخصص المهني</p>
+            <header class="hero-card" id="profileHeader">
+                <div class="profile-header">
+                    <div class="avatar-circle" id="picDisplay"><i class="fa-solid fa-user-tie"></i></div>
+                    <div class="profile-text">
+                        <h1 id="profName">...</h1>
+                        <p id="profSubj">...</p>
                     </div>
-                </div>
-                <div class="vision-mission">
-                    <div class="v-box"><h4>الرؤية</h4><p id="outVision">رؤيتك المهنية هنا...</p></div>
-                    <div class="v-box"><h4>الرسالة</h4><p id="outMission">رسالتك التعليمية هنا...</p></div>
                 </div>
             </header>
 
-            <div class="archive-bar">
-                <label>اختر العام الدراسي للأرشفة:</label>
-                <select id="yearSelect" onchange="loadYearData()"></select>
-            </div>
-
-            <div class="table-wrapper">
-                <table class="main-table">
+            <div class="table-container">
+                <table class="styled-table">
                     <thead>
-                        <tr>
-                            <th>العنصر الرئيسي</th>
-                            <th>الوزن</th>
-                            <th>اسم الشاهد البصري</th>
-                            <th>المرفقات</th>
-                        </tr>
+                        <tr><th>المعيار المهني</th><th>الشاهد المعتمد</th><th>المعرض</th></tr>
                     </thead>
-                    <tbody id="viewTableBody"></tbody>
+                    <tbody id="approvedTableBody"></tbody>
                 </table>
             </div>
         </section>
 
         <section id="adminPage" style="display:none">
             <div class="admin-card">
-                <h2>⚙️ إدارة المحتوى والأرشفة</h2>
-                <div class="admin-tools">
-                    <button onclick="autoFillCriteria()" class="btn-magic">✨ تعبئة المعايير آلياً</button>
-                    <input type="text" id="newYearInput" placeholder="مثال: 2026">
-                    <button onclick="addNewYear()">➕ إضافة عام جديد</button>
+                <div class="admin-header-flex">
+                    <h2>⚙️ إدارة الشواهد الذكية</h2>
+                    <div class="unit-selector-box">
+                        <label>اختر الوحدة لتوليد المقترحات:</label>
+                        <select id="unitSelector" onchange="generateSmartSuggestions()">
+                            <option value="">-- اختر الوحدة --</option>
+                            <option value="unit1">الوحدة 1: Top Goal 2 - Intro</option>
+                            <option value="unit2">الوحدة 2: My Family</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="profile-edit">
+                <div class="profile-edit-grid">
                     <input type="text" id="editName" placeholder="الاسم الكامل">
-                    <input type="text" id="editSubj" placeholder="التخصص">
-                    <textarea id="editVision" placeholder="الرؤية"></textarea>
-                    <textarea id="editMission" placeholder="الرسالة"></textarea>
+                    <input type="text" id="editPic" placeholder="رابط صورة Google Drive">
                 </div>
 
-                <div id="adminFormContainer">
-                </div>
-                <button onclick="saveAllData()" class="btn-save">💾 حفظ وتوثيق الأرشيف</button>
+                <div id="suggestionsArea" class="suggestions-grid">
+                    </div>
+
+                <button onclick="saveAllApproved()" class="btn-save-all">💾 اعتماد ونشر الشواهد المختارة</button>
             </div>
         </section>
     </div>
 
     <div id="galleryModal" class="modal" onclick="closeGallery()">
-        <span class="close">&times;</span>
-        <div class="modal-content">
-            <iframe id="galleryIframe" src="" frameborder="0"></iframe>
+        <div class="modal-inner" onclick="event.stopPropagation()">
+            <span class="close-btn" onclick="closeGallery()">&times;</span>
+            <iframe id="galleryIframe" src=""></iframe>
         </div>
     </div>
 

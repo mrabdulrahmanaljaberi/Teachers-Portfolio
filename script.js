@@ -9,101 +9,93 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 const criteriaBase = [
-    { id: 1, title: "أداء الواجبات الوظيفية", weight: "10%", hint: "سجل الدوام، خطة المنهج" },
-    { id: 2, title: "التفاعل مع المجتمع المحلي", weight: "10%", hint: "مبادرات، ورش عمل" },
-    { id: 3, title: "التفاعل مع أولياء الأمور", weight: "10%", hint: "سجل التواصل" },
-    { id: 4, title: "التنوع في استراتيجيات التدريس", weight: "10%", hint: "نماذج دروس، استراتيجيات" },
-    { id: 5, title: "تحسين نتائج المتعلمين", weight: "10%", hint: "تحليل نتائج، خطط علاجية" },
-    { id: 6, title: "إعداد وتنفيذ خطة التعلم", weight: "10%", hint: "تحضير، واجبات" },
-    { id: 7, title: "توظيف تقنيات التعليم", weight: "10%", hint: "تطبيقات، وسائل تقنية" },
-    { id: 8, title: "تهيئة البيئة التعليمية", weight: "5%", hint: "تحفيز، إدارة بيئة" },
-    { id: 9, title: "الإدارة الصفية", weight: "5%", hint: "ضبط سلوك، متابعة" },
-    { id: 10, title: "تحليل نتائج المتعلمين", weight: "10%", hint: "تقارير إحصائية" },
-    { id: 11, title: "تنوع أساليب التقويم", weight: "10%", hint: "اختبارات، مشاريع" }
+    { id: 4, title: "تنوع استراتيجيات التدريس", icon: "fa-lightbulb" },
+    { id: 6, title: "إعداد وتنفيذ خطة التعلم", icon: "fa-book-open" },
+    { id: 7, title: "توظيف تقنيات التعليم", icon: "fa-laptop-code" },
+    { id: 11, title: "تنوع أساليب التقويم", icon: "fa-clipboard-check" }
 ];
 
-// تحميل البيانات الأولية
-window.onload = () => {
-    db.ref('myPortfolio').on('value', snapshot => {
-        const data = snapshot.val() || {};
-        updateYearSelect(data.years);
-        renderProfile(data.profile);
-        document.getElementById('loading').style.display = 'none';
-    });
-    generateAdminFields();
+const unitKnowledge = {
+    unit1: { 4: "استراتيجية التعلم باللعب (Unit 1)", 6: "تحضير دروس الوحدة الأولى", 7: "تطبيق Quizizz للوحدة الأولى", 11: "اختبار قصير Unit 1" },
+    unit2: { 4: "تبادل الأدوار لدرس Family", 6: "خطة التدريس الأسبوعية - و2", 7: "استخدام السبورة التفاعلية", 11: "سجل متابعة مهارات الوحدة 2" }
 };
 
-function generateAdminFields() {
-    const container = document.getElementById('adminFormContainer');
-    container.innerHTML = criteriaBase.map(c => `
-        <div class="admin-item">
-            <h4>${c.title} (${c.weight})</h4>
-            <input type="text" id="evName${c.id}" placeholder="اسم الشاهد">
-            <input type="url" id="evLink${c.id}" placeholder="رابط مجلد الصور">
+// معالج روابط Drive
+function fixDriveLink(url, isFolder = false) {
+    if (!url || !url.includes('drive.google.com')) return url;
+    if (isFolder) return url.replace('/view', '/preview').replace('?usp=sharing', '');
+    const id = url.match(/\/d\/([^/]+)/);
+    return id ? `https://drive.google.com/uc?export=view&id=${id[1]}` : url;
+}
+
+window.onload = () => {
+    db.ref('myPortfolio').on('value', snap => {
+        const data = snap.val() || {};
+        renderProfile(data.profile || {});
+        renderApprovedTable(data.approvedEvidence || {});
+        document.getElementById('loading').style.display = 'none';
+    });
+};
+
+function renderProfile(p) {
+    const pic = fixDriveLink(p.pic);
+    document.getElementById('picDisplay').innerHTML = pic ? `<img src="${pic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` : `<i class="fa-solid fa-user-tie"></i>`;
+    document.getElementById('profName').innerText = p.name || "اسم المعلم";
+    document.getElementById('editName').value = p.name || "";
+    document.getElementById('editPic').value = p.pic || "";
+}
+
+function generateSmartSuggestions() {
+    const unit = document.getElementById('unitSelector').value;
+    const area = document.getElementById('suggestionsArea');
+    if (!unit) return;
+
+    area.innerHTML = criteriaBase.map(c => `
+        <div class="suggestion-card">
+            <h4><i class="fa-solid ${c.icon}"></i> ${c.title}</h4>
+            <input type="text" id="name${c.id}" value="${unitKnowledge[unit][c.id] || ''}" placeholder="اسم الشاهد">
+            <input type="text" id="link${c.id}" placeholder="رابط مجلد قوقل درايف">
+            <label class="approve-label"><input type="checkbox" id="check${c.id}"> اعتماد للنشر</label>
         </div>
     `).join('');
 }
 
-function autoFillCriteria() {
+function saveAllApproved() {
+    const profile = { name: document.getElementById('editName').value, pic: document.getElementById('editPic').value };
+    const evidence = {};
     criteriaBase.forEach(c => {
-        document.getElementById(`evName${c.id}`).value = "شاهد: " + c.hint.split('،')[0];
-    });
-}
-
-function saveAllData() {
-    const year = document.getElementById('yearSelect').value || "2026";
-    const update = {
-        profile: {
-            name: document.getElementById('editName').value,
-            subj: document.getElementById('editSubj').value,
-            vision: document.getElementById('editVision').value,
-            mission: document.getElementById('editMission').value
+        if (document.getElementById(`check${c.id}`).checked) {
+            evidence[`item${c.id}`] = {
+                name: document.getElementById(`name${c.id}`).value,
+                link: document.getElementById(`link${c.id}`).value
+            };
         }
-    };
-
-    const yearData = {};
-    criteriaBase.forEach(c => {
-        yearData[`item${c.id}`] = {
-            name: document.getElementById(`evName${c.id}`).value,
-            link: document.getElementById(`evLink${c.id}`).value
-        };
     });
-
-    db.ref(`myPortfolio/profile`).set(update.profile);
-    db.ref(`myPortfolio/years/${year}`).set(yearData);
-    alert("تم الأرشفة والحفظ بنجاح!");
+    db.ref('myPortfolio/profile').update(profile);
+    db.ref('myPortfolio/approvedEvidence').set(evidence).then(() => {
+        alert("تم الاعتماد والنشر!");
+        showPage('view');
+    });
 }
 
-function loadYearData() {
-    const year = document.getElementById('yearSelect').value;
-    db.ref(`myPortfolio/years/${year}`).once('value', snap => {
-        const data = snap.val() || {};
-        const tbody = document.getElementById('viewTableBody');
-        tbody.innerHTML = criteriaBase.map(c => {
-            const item = data[`item${c.id}`] || {};
-            return `
-                <tr>
-                    <td>${c.title}</td>
-                    <td><span class="badge">${c.weight}</span></td>
-                    <td>${item.name || '---'}</td>
-                    <td>${item.link ? `<button onclick="openGallery('${item.link}')">🖼️ عرض</button>` : '❌'}</td>
-                </tr>`;
-        }).join('');
-    });
+function renderApprovedTable(data) {
+    const tbody = document.getElementById('approvedTableBody');
+    tbody.innerHTML = criteriaBase.map(c => {
+        const item = data[`item${c.id}`];
+        if (!item) return '';
+        return `<tr><td>${c.title}</td><td>${item.name}</td><td><button class="btn-view" onclick="openGallery('${item.link}')">👁️ عرض</button></td></tr>`;
+    }).join('');
 }
 
 function openGallery(url) {
-    document.getElementById('galleryIframe').src = url;
-    document.getElementById('galleryModal').style.display = "block";
+    document.getElementById('galleryIframe').src = fixDriveLink(url, true);
+    document.getElementById('galleryModal').style.display = "flex";
 }
 
-function closeGallery() {
-    document.getElementById('galleryModal').style.display = "none";
-}
+function closeGallery() { document.getElementById('galleryModal').style.display = "none"; document.getElementById('galleryIframe').src = ""; }
 
 function showPage(p) {
-    if(p==='admin') { if(prompt("كلمة المرور:") !== "123") return; }
-    document.getElementById('viewPage').style.display = p==='view'?'block':'none';
-    document.getElementById('adminPage').style.display = p==='admin'?'block':'none';
+    if (p === 'admin' && prompt("كلمة المرور:") !== "123") return;
+    document.getElementById('viewPage').style.display = p === 'view' ? 'block' : 'none';
+    document.getElementById('adminPage').style.display = p === 'admin' ? 'block' : 'none';
 }
-// دوال مساعدة إضافية لتحديث القوائم...
